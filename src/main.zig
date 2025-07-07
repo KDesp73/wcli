@@ -32,8 +32,13 @@ pub fn main() !void {
                 },
                 .{
                     .long_name = "language",
-                    .help= "Specify the language",
+                    .help = "Specify the language",
                     .value_ref = r.mkRef(&config.language)
+                },
+                .{
+                    .long_name = "json",
+                    .help = "Print the json response and exit",
+                    .value_ref = r.mkRef(&config.json)
                 }
             }),
             .target = cli.CommandTarget{
@@ -46,7 +51,7 @@ pub fn main() !void {
 
 fn exec() !void {
     if (config.version) {
-        const version = "0.0.0";
+        const version = "0.1.0";
         try std.io.getStdOut().writer().print("v{s}\n", .{version});
         return;
     }
@@ -68,7 +73,17 @@ fn exec() !void {
 
     var Api = try api.Api.init(alloc, url);
     const body = try Api.call(null);
+    if(body == null) {
+        std.log.err("No response", .{});
+        return;
+    }
     defer alloc.free(body.?);
+    
+
+    if(config.json) {
+        _ = try std.io.getStdOut().writer().print("{s}\n", .{body.?});
+        return;
+    }
 
     const res = json.parse(alloc, body.?) catch |err| switch (err) {
         error.SyntaxError => {
@@ -82,5 +97,5 @@ fn exec() !void {
         
     };
 
-    try ui.render(config, res);
+    try ui.print(&res);
 }

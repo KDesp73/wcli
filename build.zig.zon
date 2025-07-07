@@ -1,7 +1,7 @@
 .{
     .name = .weathercli,
 
-    .version = "0.0.0",
+    .version = "0.1.0",
 
     .fingerprint = 0x2679f352c343b079,
 
