@@ -1,0 +1,25 @@
+.{
+    .name = .weathercli,
+
+    .version = "0.0.0",
+
+    .fingerprint = 0x2679f352c343b079,
+
+    .minimum_zig_version = "0.14.1",
+
+    .dependencies = .{
+        .cli = .{
+            .url = "git+https://github.com/sam701/zig-cli#9d1e7e324a0e8e331078acca6d5c038a76181512",
+            .hash = "cli-0.9.0-2eKe_0UBAQCYgzv6ikHEAjKS55_tew68MN1eh_HOa_rg",
+        },
+        .@"zig-dotenv" = .{
+            .url = "git+https://github.com/deatil/zig-dotenv?ref=main#c1e0c15dbea6e021a042c5e970dc1dd23583b7bc",
+            .hash = "zig_dotenv-1.0.1-eTg6iUVjAAAFgaDzQCIjoe9Tx4lgyR4uP5HJa2IE3kG3",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
