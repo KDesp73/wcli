@@ -16,6 +16,9 @@ pub const FgBlue      = "\x1b[34m";
 pub const FgMagenta   = "\x1b[35m";
 pub const FgCyan      = "\x1b[36m";
 pub const FgWhite     = "\x1b[37m";
+pub const FgLGrey     = "\x1b[37m";
+pub const FgDGrey     = "\x1b[38m";
+
 
 // Background colors
 pub const BgBlack     = "\x1b[40m";
@@ -29,4 +32,8 @@ pub const BgWhite     = "\x1b[47m";
 
 pub fn style(alloc: std.mem.Allocator, str: []u8, s: []u8) ![]u8 {
     return std.fmt.allocPrint(alloc, "{s}{s}{s}", .{s, str, Ansi.Reset});
+}
+
+pub fn goto(x: usize, y: usize) !void {
+    try std.io.getStdOut().writer().print("\x1B[{};{}H", .{ y, x });
 }

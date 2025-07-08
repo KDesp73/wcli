@@ -1,71 +1,121 @@
-const std = @import("std");
+const std  = @import("std");
+const ansi = @import("ansi.zig");
 const WeatherResponse = @import("json.zig").WeatherResponse;
 const Config = @import("config.zig").Config;
+
+const RenderFn = *const fn (std.io.AnyWriter, WeatherResponse) anyerror!void;
+const ConditionUI = struct {
+    codes: []const i32,
+    renderer: RenderFn,
+
+    pub fn render(self: @This(), writer: std.io.AnyWriter, res: WeatherResponse) !void {
+        try self.renderer(writer, res);
+    }
+
+    pub fn matches(self: @This(), code: i32) bool {
+        return std.mem.indexOfScalar(i32, self.codes, code) != null;
+    }
+};
+
+
+const sunny_ascii =
+    "{s}  \\   |   / {s}   {s}{s}{s}\n"   ++
+    "{s}    /\"\"\"\\{s}      {d:.1} °C  ({d:.1} °F)\n" ++
+    "{s} ― |     |  ―{s}  {d}%  {d:.1} mb\n"       ++
+    "{s}    \\___/   {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
+    "{s}  /   |   \\ {s}   {s}{s}{s}\n";
+fn sunny_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+    const c = ansi.FgYellow;
+    const r = ansi.Reset;
+    const curr = res.current;
+
+    try writer.print(sunny_ascii, .{
+        c, r, c, curr.condition.text, r,
+        c, r, curr.temp_c, curr.temp_f,
+        c, r, curr.humidity, curr.pressure_mb,
+        c, r, curr.wind_kph, curr.wind_mph, curr.wind_degree, curr.wind_dir,
+        c, r, ansi.FgBlack, res.location.localtime, ansi.Reset
+    });
+}
+
+const cloudy_ascii =
+    "{s}            {s}   {s}{s}{s}\n"              ++
+    "{s}     .--.   {s}   {d:.1} °C  ({d:.1} °F)\n" ++
+    "{s}  .-(    ). {s}   {d}%  {d:.1} mb\n"        ++
+    "{s} (___.__)__){s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
+    "{s}            {s}   {s}{s}{s}\n";
+fn cloudy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+    const c = ansi.FgBlue;
+    const r = ansi.Reset;
+    const curr = res.current;
+
+    try writer.print(cloudy_ascii, .{
+        c, r, c, curr.condition.text, r,
+        c, r, curr.temp_c, curr.temp_f,
+        c, r, curr.humidity, curr.pressure_mb,
+        c, r, curr.wind_kph, curr.wind_mph, curr.wind_degree, curr.wind_dir,
+        c, r, ansi.FgBlack, res.location.localtime, ansi.Reset,
+    });
+}
+
+const rainy_ascii =
+    " {s}     .--.   {s}   {s}{s}{s}\n"              ++
+    " {s}  .-(    ). {s}   {d:.1} °C  ({d:.1} °F)\n" ++
+    " {s} (___.__)__){s}   {d}%  {d:.1} mb\n"        ++
+    " {s}  /  /  / / {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
+    " {s}   /  /  /  {s}   {s}{s}{s}\n";
+fn rainy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+    const b = ansi.FgBlue;
+    const g = ansi.FgLGrey;
+    const cyan = ansi.FgCyan;
+    const r = ansi.Reset;
+    const curr = res.current;
+    
+    try writer.print(rainy_ascii, .{
+        g, r, cyan, curr.condition.text, r,
+        g, r, curr.temp_c, curr.temp_f,
+        g, r, curr.humidity, curr.pressure_mb,
+        b, r, curr.wind_kph, curr.wind_mph, curr.wind_degree, curr.wind_dir,
+        b, r, ansi.FgBlack, res.location.localtime, ansi.Reset,
+    });
+}
+
+const sunny_codes   = &.{ 1000 };
+const cloudy_codes  = &.{ 1003, 1006, 1009 };
+const rainy_codes   = &.{ 1063, 1150, 1180, 1183, 1186, 1189, 1192, 1195 };
+
+// TODO: Renderers for the below
+const foggy_codes   = &.{ 1030, 1135, 1147 };
+const thunder_codes = &.{ 1087, 1273, 1276 };
+const snow_codes    = &.{ 1066, 1210, 1213, 1216, 1222, 1225 };
+
+const CONDITIONS = [_]ConditionUI{
+    .{ .renderer = sunny_renderer, .codes = sunny_codes },
+    .{ .renderer = cloudy_renderer, .codes = cloudy_codes },
+    .{ .renderer = rainy_renderer, .codes = rainy_codes },
+};
+
+fn findCondition(code: i32) ?ConditionUI {
+    for (CONDITIONS) |cnd| {
+        if (cnd.matches(code)) return cnd;
+    }
+    return null;
+}
 
 pub fn render(conf: Config, res: WeatherResponse) !void {
     _ = conf;
 
-    std.log.info("{s}, {s}", .{res.location.name, res.location.country});
-    std.log.info("{s} ({})", .{
-        res.current.condition.text, res.current.condition.code
-    });
+    const w = std.io.getStdOut().writer().any();
+    const code = res.current.condition.code;
 
+    if (findCondition(code)) |cnd| {
+        try w.writeAll("\n");
+        try cnd.render(w, res);
+        try w.writeAll("\n");
+    } else {
+        try w.print("Unknown weather code {} – {s}\n", .{
+            code,
+            res.current.condition.text,
+        });
+    }
 }
-
-pub fn print(resp: *const WeatherResponse) !void {
-    var w = resp; // shorthand
-
-    const out = std.io.getStdOut().writer();
-
-    // ── Location ────────────────────────────────────────────────
-    try out.print(
-        \\{s}, {s}, {s}
-        \\Lat/Lon:  {d:.4}, {d:.4}
-        \\Time:     {s} (epoch {d})
-        \\────────────────────────────────────────────────────────
-        \\
-        ,
-        .{
-            w.location.name,
-            w.location.region,
-            w.location.country,
-            w.location.lat,
-            w.location.lon,
-            w.location.localtime,
-            w.location.localtime_epoch,
-        },
-    );
-
-    // ── Current Conditions ─────────────────────────────────────
-    const c = &w.current;
-    try out.print(
-        \\Temp:      {d:.1} °C  ({d:.1} °F)
-        \\Feels like {d:.1} °C  ({d:.1} °F)
-        \\Humidity:  {d}%      Cloud: {d}%
-        \\Wind:      {d:.1} kph  ({d:.1} mph)  {d}° {s}
-        \\Pressure:  {d:.1} mb  ({d:.2} in)
-        \\Precip:    {d:.1} mm  ({d:.1} in)
-        \\Visibility {d:.1} km  ({d:.1} mi)
-        \\UV index:  {d:.1}
-        \\Condition: {s}
-        \\Icon:      {s}
-        \\────────────────────────────────────────────────────────
-        \\Updated:   {s} (epoch {d})
-        \\
-        ,
-        .{
-            c.temp_c,        c.temp_f,
-            c.feelslike_c,   c.feelslike_f,
-            c.humidity,      c.cloud,
-            c.wind_kph,      c.wind_mph, c.wind_degree, c.wind_dir,
-            c.pressure_mb,   c.pressure_in,
-            c.precip_mm,     c.precip_in,
-            c.vis_km,        c.vis_miles,
-            c.uv,
-            c.condition.text,
-            c.condition.icon,
-            c.last_updated,  c.last_updated_epoch,
-        },
-    );
-}
-

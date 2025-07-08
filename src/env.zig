@@ -21,9 +21,14 @@ pub const Env = struct {
         self.alloc.free(self.data);
     }
 
-    pub fn get(self: *Env, key: []const u8) !?[]const u8 {
+    pub fn getDotEnv(self: *Env, key: []const u8) !?[]const u8 {
         try self.env.parse(self.data);
         return self.env.get(key);
+    }
+
+    pub fn getSystem(self: *Env, allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
+        _ = self;
+        return try std.process.getEnvVarOwned(allocator, key);
     }
 };
 

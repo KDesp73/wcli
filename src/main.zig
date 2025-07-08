@@ -59,7 +59,17 @@ fn exec() !void {
     var Env = try env.Env.init(alloc);
     defer Env.deinit();
 
-    const api_key = try Env.get("WEATHER_API_KEY");
+    const api_key = Env.getSystem(alloc, "WEATHER_API_KEY") catch |err| switch (err) {
+        error.EnvironmentVariableNotFound => {
+            std.log.err("WEATHER_API_KEY environment variable is not set", .{});
+            return;
+        },
+        else => {
+            std.log.err("An error has occured", .{});
+            return;
+        }
+        
+    };
     if (api_key == null) {
         std.log.err("WEATHER_API_KEY environment variable is not set", .{});
         return;
@@ -78,7 +88,7 @@ fn exec() !void {
         return;
     }
     defer alloc.free(body.?);
-    
+
 
     if(config.json) {
         _ = try std.io.getStdOut().writer().print("{s}\n", .{body.?});
@@ -94,8 +104,7 @@ fn exec() !void {
             std.log.err("An error has occured", .{});
             return;
         }
-        
     };
 
-    try ui.print(&res);
+    try ui.render(config, res);
 }
