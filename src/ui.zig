@@ -80,19 +80,40 @@ fn rainy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
     });
 }
 
+const snowy_ascii =
+    " {s}     .--.   {s}   {s}{s}{s}\n"              ++
+    " {s}  .-(    ). {s}   {d:.1} °C  ({d:.1} °F)\n" ++
+    " {s} (___.__)__){s}   {d}%  {d:.1} mb\n"        ++
+    " {s}  *  *  * * {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
+    " {s}   *  *  *  {s}   {s}{s}{s}\n";
+fn snowy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+    const g = ansi.FgLGrey;
+    const r = ansi.Reset;
+    const curr = res.current;
+    
+    try writer.print(snowy_ascii, .{
+        g, r, ansi.Bold, curr.condition.text, r,
+        g, r, curr.temp_c, curr.temp_f,
+        g, r, curr.humidity, curr.pressure_mb,
+        ansi.FgWhite, r, curr.wind_kph, curr.wind_mph, curr.wind_degree, curr.wind_dir,
+        ansi.FgWhite, r, ansi.FgBlack, res.location.localtime, ansi.Reset,
+    });
+}
+
 const sunny_codes   = &.{ 1000 };
 const cloudy_codes  = &.{ 1003, 1006, 1009 };
-const rainy_codes   = &.{ 1063, 1150, 1180, 1183, 1186, 1189, 1192, 1195 };
+const rainy_codes   = &.{ 1063, 1150, 1180, 1183, 1186, 1189, 1192, 1195 }; // TODO: introduce other rainy ascii drawings
+const snowy_codes    = &.{ 1066, 1210, 1213, 1216, 1222, 1225 };
 
 // TODO: Renderers for the below
 const foggy_codes   = &.{ 1030, 1135, 1147 };
 const thunder_codes = &.{ 1087, 1273, 1276 };
-const snow_codes    = &.{ 1066, 1210, 1213, 1216, 1222, 1225 };
 
 const CONDITIONS = [_]ConditionUI{
     .{ .renderer = sunny_renderer, .codes = sunny_codes },
     .{ .renderer = cloudy_renderer, .codes = cloudy_codes },
     .{ .renderer = rainy_renderer, .codes = rainy_codes },
+    .{ .renderer = snowy_renderer, .codes = snowy_codes },
 };
 
 fn findCondition(code: i32) ?ConditionUI {
@@ -113,7 +134,7 @@ pub fn render(conf: Config, res: WeatherResponse) !void {
         try cnd.render(w, res);
         try w.writeAll("\n");
     } else {
-        try w.print("Unknown weather code {} – {s}\n", .{
+        std.log.err("Unknown weather code {} – {s}\n", .{
             code,
             res.current.condition.text,
         });
