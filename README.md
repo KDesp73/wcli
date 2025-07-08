@@ -8,7 +8,7 @@
 
 ## Usage
 
-The `WEATHER_API_KEY` environment variable must be set and accessible. This can be accieved through an alias or an export.
+The `WEATHER_API_KEY` environment variable must be set and accessible. This can be achieved through an alias or an export.
 
 ```bash
 weathercli --location Athens --language el
