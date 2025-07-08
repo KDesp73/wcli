@@ -1,5 +1,7 @@
 # weathercli
 
+A cli tool to display the weather in a nice way
+
 > Get your api key from [weatherapi](https://www.weatherapi.com/)
 
 ---
