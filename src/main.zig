@@ -5,6 +5,7 @@ const env = @import("env.zig");
 const ui = @import("ui.zig");
 const json = @import("json.zig");
 const Config = @import("config.zig").Config;
+const Cache = @import("cache.zig").Cache;
 
 var config = Config{};
 const alloc = std.heap.page_allocator;
@@ -56,6 +57,17 @@ fn exec() !void {
         return;
     }
 
+    const cache_root = try Cache.path(alloc);
+    defer alloc.free(cache_root);
+
+    std.fs.cwd().access(cache_root, .{}) catch |err| switch (err) {
+        error.FileNotFound => {
+            try std.fs.makeDirAbsolute(cache_root);
+        },
+        else => return err,
+    };
+
+    
     var Env = try env.Env.init(alloc);
     defer Env.deinit();
 
@@ -75,20 +87,31 @@ fn exec() !void {
         return;
     }
 
-    var buf = [_]u8{0} ** 1024;
-    const url = try std.fmt.bufPrintZ(&buf, 
-        "https://api.weatherapi.com/v1/current.json?q={s}&lang={s}&key={s}", 
-        .{config.location, config.language, api_key.?}
-    );
+    var body: ?[]const u8 = null;
 
-    var Api = try api.Api.init(alloc, url);
-    const body = try Api.call(null);
+    const cache_path = try Cache.entry_path(config.location, config.language, alloc);
+    defer alloc.free(cache_path);
+
+    const is_fresh = try Cache.is_fresh(cache_path, alloc);
+    if(is_fresh) {
+        body = try Cache.read_response(cache_path, alloc);
+    } else {
+        var buf = [_]u8{0} ** 1024;
+        const url = try std.fmt.bufPrintZ(&buf, 
+            "https://api.weatherapi.com/v1/current.json?q={s}&lang={s}&key={s}", 
+            .{config.location, config.language, api_key.?}
+        );
+
+        var Api = try api.Api.init(alloc, url);
+        body = try Api.call(null);
+
+        try Cache.write(cache_path, body.?);
+    }
     if(body == null) {
         std.log.err("No response", .{});
         return;
     }
     defer alloc.free(body.?);
-
 
     if(config.json) {
         _ = try std.io.getStdOut().writer().print("{s}\n", .{body.?});

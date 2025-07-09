@@ -62,7 +62,7 @@ pub const Condition = struct {
     code: i32,
 };
 
-pub fn parse(alloc: std.mem.Allocator, json: []u8) !WeatherResponse {
+pub fn parse(alloc: std.mem.Allocator, json: []const u8) !WeatherResponse {
     const parsed = try std.json.parseFromSlice(
         WeatherResponse,
         alloc,
