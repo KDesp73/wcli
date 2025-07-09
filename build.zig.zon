@@ -1,9 +1,9 @@
 .{
-    .name = .weathercli,
+    .name = .wcli,
 
     .version = "0.1.0",
 
-    .fingerprint = 0x2679f352c343b079,
+    .fingerprint = 0x601bcf17a811da78,
 
     .minimum_zig_version = "0.14.1",
 

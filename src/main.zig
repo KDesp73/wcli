@@ -16,7 +16,7 @@ pub fn main() !void {
 
     const app = cli.App{
         .command = cli.Command{
-            .name = "weathercli",
+            .name = "wcli",
             .description = .{ .one_line = "A weather tool for the terminal" },
             .options = try runner.allocOptions(&.{
                 .{

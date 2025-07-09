@@ -27,7 +27,7 @@ pub const Api = struct {
             uri,
             std.http.Client.RequestOptions {
                 .headers = .{
-                    .user_agent = .{ .override = "weathercli" },
+                    .user_agent = .{ .override = "wcli" },
                 },
                 .extra_headers = &.{},
                 .redirect_behavior = .not_allowed,

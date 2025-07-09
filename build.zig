@@ -11,7 +11,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const exe = b.addExecutable(.{
-        .name = "weathercli",
+        .name = "wcli",
         .root_module = exe_mod,
     });
 

@@ -40,7 +40,7 @@ pub const Cache = struct {
     pub fn path(allocator: std.mem.Allocator) ![]const u8 {
         const home = try std.process.getEnvVarOwned(allocator, "HOME");
         defer allocator.free(home);
-        return std.fmt.allocPrint(allocator, "{s}/.cache/weathercli", .{home});
+        return std.fmt.allocPrint(allocator, "{s}/.cache/wcli", .{home});
     }
 
     pub fn entry_path(location: []const u8, language: []const u8, allocator: std.mem.Allocator) ![]const u8 {
