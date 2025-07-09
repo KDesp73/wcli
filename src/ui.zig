@@ -100,20 +100,55 @@ fn snowy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
     });
 }
 
+const foggy_ascii = 
+    " {s}   _   _    {s}   {s}{s}{s}\n"              ++
+    " {s} _   _   _  {s}   {d:.1} °C  ({d:.1} °F)\n" ++
+    " {s}   _   _    {s}   {d}%  {d:.1} mb\n"        ++
+    " {s} _   _   _  {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
+    " {s}            {s}   {s}{s}{s}\n";
+fn foggy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+    const curr = res.current;
+    try writer.print(foggy_ascii, .{
+        ansi.FgMagenta, ansi.Reset, ansi.FgMagenta, curr.condition.text, ansi.Reset,
+        ansi.FgMagenta, ansi.Reset, curr.temp_c, curr.temp_f,
+        ansi.FgMagenta, ansi.Reset, curr.humidity, curr.pressure_mb,
+        ansi.FgMagenta, ansi.Reset, curr.wind_kph, curr.wind_mph, curr.wind_degree, curr.wind_dir,
+        ansi.FgMagenta, ansi.Reset, ansi.FgBlack, res.location.localtime, ansi.Reset,
+    });
+}
+    
+const thunder_ascii = 
+    " {s}     .--.   {s}   {s}{s}{s}\n"              ++
+    " {s}  .-(    ). {s}   {d:.1} °C  ({d:.1} °F)\n" ++
+    " {s} (___.__)__){s}   {d}%  {d:.1} mb\n"        ++
+    " {s}      /     {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
+    " {s}      7     {s}   {s}{s}{s}\n";
+fn thunder_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+    const curr = res.current;
+    try writer.print(foggy_ascii, .{
+        ansi.FgLGrey, ansi.Reset, ansi.FgCyan, curr.condition.text, ansi.Reset,
+        ansi.FgLGrey, ansi.Reset, curr.temp_c, curr.temp_f,
+        ansi.FgLGrey, ansi.Reset, curr.humidity, curr.pressure_mb,
+        ansi.FgYellow, ansi.Reset, curr.wind_kph, curr.wind_mph, curr.wind_degree, curr.wind_dir,
+        ansi.FgYellow, ansi.Reset, ansi.FgBlack, res.location.localtime, ansi.Reset,
+    });
+}
+
 const sunny_codes   = &.{ 1000 };
 const cloudy_codes  = &.{ 1003, 1006, 1009 };
 const rainy_codes   = &.{ 1063, 1150, 1180, 1183, 1186, 1189, 1192, 1195 }; // TODO: introduce other rainy ascii drawings
 const snowy_codes    = &.{ 1066, 1210, 1213, 1216, 1222, 1225 };
-
-// TODO: Renderers for the below
 const foggy_codes   = &.{ 1030, 1135, 1147 };
 const thunder_codes = &.{ 1087, 1273, 1276 };
+
 
 const CONDITIONS = [_]ConditionUI{
     .{ .renderer = sunny_renderer, .codes = sunny_codes },
     .{ .renderer = cloudy_renderer, .codes = cloudy_codes },
     .{ .renderer = rainy_renderer, .codes = rainy_codes },
     .{ .renderer = snowy_renderer, .codes = snowy_codes },
+    .{ .renderer = foggy_renderer, .codes = foggy_codes },
+    .{ .renderer = thunder_renderer, .codes = thunder_codes },
 };
 
 fn findCondition(code: i32) ?ConditionUI {
@@ -130,7 +165,7 @@ pub fn render(conf: Config, res: WeatherResponse) !void {
     const code = res.current.condition.code;
 
     if (findCondition(code)) |cnd| {
-        try w.writeAll("\n");
+        // try w.writeAll("\n");
         try cnd.render(w, res);
         try w.writeAll("\n");
     } else {
