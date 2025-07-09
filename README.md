@@ -1,4 +1,4 @@
-# weathercli
+# wcli
 
 **wcli** is a command-line tool that displays weather information in a concise and visually appealing format.
 
@@ -14,7 +14,7 @@ Get your API key from [weatherapi.com](https://www.weatherapi.com/).
 ### Manual
 
 ```bash
-git clone https://github.com/KDesp73/weathercli && cd weathercli
+git clone https://github.com/KDesp73/wcli && cd wcli
 sudo zig build install-local
 ```
 
