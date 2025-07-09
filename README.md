@@ -1,25 +1,46 @@
 # weathercli
 
-A cli tool to display the weather in a nice way
+**weathercli** is a command-line tool that displays weather information in a concise and visually appealing format.
 
-> Get your api key from [weatherapi](https://www.weatherapi.com/)
+Get your API key from [weatherapi.com](https://www.weatherapi.com/).
 
 ---
 
-![2025-07-08-033840_hyprshot](https://github.com/user-attachments/assets/59434c03-0150-445d-b1d2-596d37d3f848)
+![Screenshot of weathercli output](https://github.com/user-attachments/assets/59434c03-0150-445d-b1d2-596d37d3f848)
+
+## Installation
+
+Make sure the `weathercli` binary is built and available in your `PATH`.
+
+## API Key
+
+To use `weathercli`, you must set the `WEATHER_API_KEY` environment variable. You can do this in a few ways:
+
+```bash
+# Temporary (shell session only)
+export WEATHER_API_KEY="your-api-key"
+
+# Permanent (add to ~/.bashrc or ~/.zshrc)
+export WEATHER_API_KEY="your-api-key"
+
+# Alternatively, use an alias
+alias weathercli='WEATHER_API_KEY="your-api-key" weathercli'
+```
 
 ## Usage
 
-The `WEATHER_API_KEY` environment variable must be set and accessible. This can be achieved through an alias or an export.
+Run the tool from your terminal:
 
 ```bash
-alias weathercli="WEATHER_API_KEY='<KEY>' weathercli"
-# or
-export WEATHER_API_KEY="<KEY>" # in a sourced file
+weathercli [options]
 ```
 
-See `weathercli --help` for more info on usage.
+To see all available options and usage instructions:
+
+```bash
+weathercli --help
+```
 
 ## License
 
-[MIT](./LICENSE)
+This project is licensed under the [MIT License](./LICENSE).

@@ -165,7 +165,7 @@ pub fn render(conf: Config, res: WeatherResponse) !void {
     const code = res.current.condition.code;
 
     if (findCondition(code)) |cnd| {
-        // try w.writeAll("\n");
+        try w.writeAll("\n");
         try cnd.render(w, res);
         try w.writeAll("\n");
     } else {
