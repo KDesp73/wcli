@@ -13,8 +13,12 @@ A cli tool to display the weather in a nice way
 The `WEATHER_API_KEY` environment variable must be set and accessible. This can be achieved through an alias or an export.
 
 ```bash
-weathercli --location Athens --language el
+alias weathercli="WEATHER_API_KEY='<KEY>' weathercli"
+# or
+export WEATHER_API_KEY="<KEY>" # in a sourced file
 ```
+
+See `weathercli --help` for more info on usage.
 
 ## License
 
