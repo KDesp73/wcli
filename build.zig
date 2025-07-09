@@ -45,6 +45,23 @@ pub fn build(b: *std.Build) void {
 
     const clean_step = b.step("clean", "Remove build artifacts");
     clean_step.makeFn = makeCleanStep;
+
+    const install_step = b.getInstallStep();
+    var copyStep = b.step("copy-to-system-bin", "Copy binary to /usr/local/bin");
+    copyStep.makeFn = makeInstallStep;
+    install_step.dependOn(copyStep);
+
+}
+
+fn makeInstallStep(_: *std.Build.Step, _: std.Build.Step.MakeOptions) anyerror!void {
+    const cwd = std.fs.cwd();
+
+    const exe_path = "zig-out/bin/wcli";
+
+    var bin_dir = try std.fs.openDirAbsolute("/usr/local/bin", .{});
+    defer bin_dir.close();
+
+    try cwd.copyFile(exe_path, bin_dir, "wcli", .{});
 }
 
 fn makeCleanStep(_: *std.Build.Step, _: std.Build.Step.MakeOptions) anyerror!void {

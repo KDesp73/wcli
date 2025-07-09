@@ -10,7 +10,12 @@ Get your API key from [weatherapi.com](https://www.weatherapi.com/).
 
 ## Installation
 
-Make sure the `weathercli` binary is built and available in your `PATH`.
+### Manual
+
+```bash
+git clone https://github.com/KDesp73/weathercli && weathercli
+sudo zig build install
+```
 
 ## API Key
 
