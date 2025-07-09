@@ -14,7 +14,7 @@ Get your API key from [weatherapi.com](https://www.weatherapi.com/).
 
 ```bash
 git clone https://github.com/KDesp73/weathercli && weathercli
-sudo zig build install
+sudo zig build install-local
 ```
 
 ## API Key
