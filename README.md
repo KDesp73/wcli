@@ -6,7 +6,8 @@ Get your API key from [weatherapi.com](https://www.weatherapi.com/).
 
 ---
 
-![Screenshot of weathercli output](https://github.com/user-attachments/assets/59434c03-0150-445d-b1d2-596d37d3f848)
+![2025-07-09-153247_hyprshot](https://github.com/user-attachments/assets/93ec91ea-23a7-4275-bda0-2dce573098a0)
+
 
 ## Installation
 
