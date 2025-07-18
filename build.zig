@@ -42,6 +42,36 @@ pub fn build(b: *std.Build) void {
 
     const install_local = b.step("install-local", "Copy binary to /usr/local/bin");
     install_local.makeFn = makeInstallStep;
+
+    const autocomplete = b.step("autocomplete", "Generate the autocomplete scripts");
+    autocomplete.makeFn = makeAutocompleteStep;
+}
+
+pub fn makeAutocompleteStep(step: *std.Build.Step, _: std.Build.Step.MakeOptions) !void {
+    const allocator = step.owner.allocator;
+
+    const scripts = [_][]const u8{
+        "--zsh",  "./docs/autocomplete/_wcli.zsh",
+        "--bash", "./docs/autocomplete/_wcli.bash",
+        "--fish", "./docs/autocomplete/_wcli.fish",
+    };
+
+    var i: usize = 0;
+    while (i < scripts.len) : (i += 2) {
+        const script_flag = scripts[i];
+        const output_file = scripts[i + 1];
+
+        var process = std.process.Child.init(&[_][]const u8{
+            "complgen", script_flag, output_file, "./docs/autocomplete/wcli.usage"
+        }, allocator);
+
+        process.stderr_behavior = .Inherit;
+        process.stdout_behavior = .Inherit;
+
+        try process.spawn();
+        const result = try process.wait();
+        if (result.Exited != 0) return error.AutocompleteGenerationFailed;
+    }
 }
 
 fn makeInstallStep(_: *std.Build.Step, _: std.Build.Step.MakeOptions) anyerror!void {

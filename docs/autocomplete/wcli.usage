@@ -1,0 +1,13 @@
+wcli <OPTIONS>...;
+
+<OPTIONS> ::= (-v | --version) "Prints the version and exits"
+            | (--location <VALUE>) "Specify the location"
+            | (--lang <LANG-VALUE>) "Specify the language"
+            | --json "Print the json response and exit"
+            | (-h | --help) "Show this help output."
+            | (--color <COLOR-VALUE>) "When to use colors (*auto*, never, always)."
+            ;
+
+<COLOR-VALUE> ::= (auto | never | always);
+
+<LANG-VALUE> ::= (ar | bn | bg | zh | zh_tw | cs | da | nl | fi | fr | de | el | hi | hu | it | ja | jv | ko | zh_cmn | mr | pl | pt | pa | ro | ru | sr | si | sk | es | sv | ta | te | tr | uk | ur | vi | zh_wuu | zh_hsn | zh_yue | zu);

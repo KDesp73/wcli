@@ -98,7 +98,7 @@ fn exec() !void {
         var Api = try api.Api.init(alloc, url);
         body = try Api.call(null);
 
-        try Cache.write(cache_path, body.?);
+        if(body != null) try Cache.write(cache_path, body.?);
     }
 
     if (body == null) {
