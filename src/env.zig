@@ -8,17 +8,13 @@ pub const Env = struct {
     data: ?[]u8 = null,
 
     pub fn init(alloc: std.mem.Allocator) !Env {
-        const e = Env { 
-            .env = dotenv.Dotenv.init(alloc, .{}),
-            .data = std.fs.cwd().readFileAlloc(alloc, Env.path, 1 << 20) catch null,
-            .alloc = alloc
-        };
-        return e; 
+        const e = Env{ .env = dotenv.Dotenv.init(alloc, .{}), .data = std.fs.cwd().readFileAlloc(alloc, Env.path, 1 << 20) catch null, .alloc = alloc };
+        return e;
     }
 
     pub fn deinit(self: *Env) void {
         self.env.deinit();
-        if(self.data != null) self.alloc.free(self.data.?);
+        if (self.data != null) self.alloc.free(self.data.?);
     }
 
     pub fn getDotEnv(self: *Env, key: []const u8) !?[]const u8 {
@@ -31,4 +27,3 @@ pub const Env = struct {
         return try std.process.getEnvVarOwned(allocator, key);
     }
 };
-

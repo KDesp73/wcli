@@ -46,6 +46,6 @@ pub const Cache = struct {
     pub fn entry_path(location: []const u8, language: []const u8, allocator: std.mem.Allocator) ![]const u8 {
         const cache_path = try Cache.path(allocator);
         defer allocator.free(cache_path);
-        return std.fmt.allocPrint(allocator, "{s}/{s}_{s}", .{cache_path, location, language});
+        return std.fmt.allocPrint(allocator, "{s}/{s}_{s}", .{ cache_path, location, language });
     }
 };

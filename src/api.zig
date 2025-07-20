@@ -6,10 +6,7 @@ pub const Api = struct {
     allocator: std.mem.Allocator = undefined,
 
     pub fn init(alloc: std.mem.Allocator, endpoint: []u8) !Api {
-        const api = Api {
-            .allocator = alloc,
-            .default_endpoint = endpoint
-        };
+        const api = Api{ .allocator = alloc, .default_endpoint = endpoint };
         return api;
     }
 
@@ -22,17 +19,14 @@ pub const Api = struct {
         defer client.deinit();
 
         var header_buf: [4096]u8 = undefined;
-        var req = try client.open(
-            .GET,
-            uri,
-            std.http.Client.RequestOptions {
-                .headers = .{
-                    .user_agent = .{ .override = "wcli" },
-                },
-                .extra_headers = &.{},
-                .redirect_behavior = .not_allowed,
-                .server_header_buffer = &header_buf,
-            });
+        var req = try client.open(.GET, uri, std.http.Client.RequestOptions{
+            .headers = .{
+                .user_agent = .{ .override = "wcli" },
+            },
+            .extra_headers = &.{},
+            .redirect_behavior = .not_allowed,
+            .server_header_buffer = &header_buf,
+        });
         defer req.deinit();
 
         try req.send();
@@ -46,10 +40,9 @@ pub const Api = struct {
             return null;
         }
 
-        const buf = try self.allocator.alloc(u8, 2*1024);
+        const buf = try self.allocator.alloc(u8, 2 * 1024);
         const n = try req.read(buf);
 
         return buf[0..n];
     }
-
 };

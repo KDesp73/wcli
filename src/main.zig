@@ -90,15 +90,12 @@ fn exec() !void {
         body = try Cache.read_response(cache_path, alloc);
     } else {
         var buf = [_]u8{0} ** 1024;
-        const url = try std.fmt.bufPrintZ(&buf,
-            "https://api.weatherapi.com/v1/current.json?q={s}&lang={s}&key={s}",
-            .{ config.location, config.language, api_key.? }
-        );
+        const url = try std.fmt.bufPrintZ(&buf, "https://api.weatherapi.com/v1/current.json?q={s}&lang={s}&key={s}", .{ config.location, config.language, api_key.? });
 
         var Api = try api.Api.init(alloc, url);
         body = try Api.call(null);
 
-        if(body != null) try Cache.write(cache_path, body.?);
+        if (body != null) try Cache.write(cache_path, body.?);
     }
 
     if (body == null) {
