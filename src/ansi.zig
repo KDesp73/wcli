@@ -34,5 +34,8 @@ pub fn style(alloc: std.mem.Allocator, str: []u8, s: []u8) ![]u8 {
 }
 
 pub fn goto(x: usize, y: usize) !void {
-    try std.io.getStdOut().writer().print("\x1B[{};{}H", .{ y, x });
+    var buf: [1024]u8 = undefined;
+    var w = std.fs.File.writer(std.fs.File.stdout(), &buf);
+    try w.interface.print("\x1B[{};{}H", .{ y, x });
+    try w.interface.flush();
 }

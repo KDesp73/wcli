@@ -9,12 +9,12 @@
 
     .dependencies = .{
         .cli = .{
-            .url = "git+https://github.com/sam701/zig-cli#9d1e7e324a0e8e331078acca6d5c038a76181512",
-            .hash = "cli-0.9.0-2eKe_0UBAQCYgzv6ikHEAjKS55_tew68MN1eh_HOa_rg",
+            .url = "git+https://github.com/sam701/zig-cli#zig-0.15",
+            .hash = "cli-0.10.0-2eKe_5kEAQBeHqKxUHNTGnETzu81rqKWwT1WPt1jXBt0",
         },
         .@"zig-dotenv" = .{
-            .url = "git+https://github.com/deatil/zig-dotenv?ref=main#c1e0c15dbea6e021a042c5e970dc1dd23583b7bc",
-            .hash = "zig_dotenv-1.0.1-eTg6iUVjAAAFgaDzQCIjoe9Tx4lgyR4uP5HJa2IE3kG3",
+            .url = "git+https://github.com/deatil/zig-dotenv#v1.1.0",
+            .hash = "zig_dotenv-1.1.0-eTg6iWhkAADtIt5vtQBj5JPbjddlDvG4IpFX5U0J-VF6",
         },
     },
     .paths = .{

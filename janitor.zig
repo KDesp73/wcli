@@ -45,11 +45,14 @@ pub const Janitor = struct {
     /// This must be called before adding dependencies.
     pub fn exe(self: *Self, name: []const u8) void {
         self.name = name;
-        self.exeMod = self.b.addExecutable(.{
-            .name = name,
+        const mod = self.b.createModule(.{
             .root_source_file = self.b.path("src/main.zig"),
             .target = self.target,
             .optimize = self.optimize,
+        });
+        self.exeMod = self.b.addExecutable(.{
+            .name = name,
+            .root_module = mod,
         });
     }
 

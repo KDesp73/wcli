@@ -54,6 +54,11 @@ pub const Current = struct {
 
     gust_mph: f64,
     gust_kph: f64,
+
+    will_it_rain: u8,
+    chance_of_rain: u8,
+    will_it_snow: u8,
+    chance_of_snow: u8,
 };
 
 pub const Condition = struct {

@@ -18,31 +18,33 @@ pub const Api = struct {
         var client = std.http.Client{ .allocator = self.allocator };
         defer client.deinit();
 
-        var header_buf: [4096]u8 = undefined;
-        var req = try client.open(.GET, uri, std.http.Client.RequestOptions{
+        var req = try client.request(.GET, uri, .{
             .headers = .{
                 .user_agent = .{ .override = "wcli" },
+                .accept_encoding = .{ .override = "identity" },
             },
-            .extra_headers = &.{},
-            .redirect_behavior = .not_allowed,
-            .server_header_buffer = &header_buf,
+            .redirect_behavior = @enumFromInt(0),
         });
         defer req.deinit();
 
-        try req.send();
-        try req.wait();
+        try req.sendBodiless();
+        var redirect_buf: [4096]u8 = undefined;
+        var response = try req.receiveHead(&redirect_buf);
 
-        if (req.response.status != .ok) {
+        if (response.head.status != .ok) {
             std.log.err("server replied with {d} {s}", .{
-                @intFromEnum(req.response.status),
-                req.response.reason,
+                @intFromEnum(response.head.status),
+                response.head.reason,
             });
             return null;
         }
 
-        const buf = try self.allocator.alloc(u8, 2 * 1024);
-        const n = try req.read(buf);
-
-        return buf[0..n];
+        var transfer_buf: [1024]u8 = undefined;
+        const reader = response.reader(&transfer_buf);
+        const result = reader.allocRemaining(self.allocator, .limited(2 * 1024)) catch |err| {
+            std.log.err("read error: {}", .{err});
+            return null;
+        };
+        return result;
     }
 };

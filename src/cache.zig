@@ -4,15 +4,14 @@ pub const Cache = struct {
     const ttl = 300;
 
     pub fn is_fresh(file_path: []const u8, allocator: std.mem.Allocator) !bool {
+        _ = allocator;
         var file = std.fs.cwd().openFile(file_path, .{}) catch return false;
         defer file.close();
 
-        var buf_reader = std.io.bufferedReader(file.reader());
-        const reader = buf_reader.reader();
-
-        const line = try reader.readUntilDelimiterOrEofAlloc(allocator, '\n', 2048);
-        if (line == null) return false;
-        const timestamp = try std.fmt.parseInt(i64, line.?, 10);
+        var buf: [1024]u8 = undefined;
+        var r = std.fs.File.reader(file, &buf);
+        const line = try r.interface.takeDelimiter('\n') orelse return false;
+        const timestamp = try std.fmt.parseInt(i64, line, 10);
         const now = @as(i64, @intCast(std.time.timestamp()));
 
         return (now - timestamp) < Cache.ttl;
@@ -22,19 +21,19 @@ pub const Cache = struct {
         var file = try std.fs.cwd().openFile(file_path, .{});
         defer file.close();
 
-        var buf_reader = std.io.bufferedReader(file.reader());
-        const reader = buf_reader.reader();
-
-        _ = try reader.readUntilDelimiterOrEofAlloc(allocator, '\n', 2048); // skip timestamp
-        return try reader.readAllAlloc(allocator, 4096); // read rest of data
+        var buf: [1024]u8 = undefined;
+        var r = std.fs.File.reader(file, &buf);
+        _ = try r.interface.takeDelimiter('\n'); // skip timestamp
+        return try r.interface.allocRemaining(allocator, .limited(4096)); // read rest of data
     }
 
     pub fn write(file_path: []const u8, response: []const u8) !void {
         var file = try std.fs.cwd().createFile(file_path, .{ .truncate = true });
         defer file.close();
 
-        const writer = file.writer();
-        try writer.print("{}\n{s}", .{ std.time.timestamp(), response });
+        var buf: [1024]u8 = undefined;
+        var writer = std.fs.File.writer(file, &buf);
+        try writer.interface.print("{}\n{s}", .{ std.time.timestamp(), response });
     }
 
     pub fn path(allocator: std.mem.Allocator) ![]const u8 {

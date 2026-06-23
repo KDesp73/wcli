@@ -3,12 +3,12 @@ const ansi = @import("ansi.zig");
 const WeatherResponse = @import("json.zig").WeatherResponse;
 const Config = @import("config.zig").Config;
 
-const RenderFn = *const fn (std.io.AnyWriter, WeatherResponse) anyerror!void;
+const RenderFn = *const fn (*std.io.Writer, WeatherResponse) anyerror!void;
 const ConditionUI = struct {
     codes: []const i32,
     renderer: RenderFn,
 
-    pub fn render(self: @This(), writer: std.io.AnyWriter, res: WeatherResponse) !void {
+    pub fn render(self: @This(), writer: *std.io.Writer, res: WeatherResponse) !void {
         try self.renderer(writer, res);
     }
 
@@ -23,7 +23,7 @@ const sunny_ascii =
     "{s} ― |     | ―{s}   {d}%  {d:.1} mb\n" ++
     "{s}    \\___/   {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
     "{s}  /   |   \\ {s}   {s}{s}{s}\n";
-fn sunny_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+fn sunny_renderer(writer: *std.io.Writer, res: WeatherResponse) !void {
     const c = ansi.FgYellow;
     const r = ansi.Reset;
     const curr = res.current;
@@ -37,7 +37,7 @@ const cloudy_ascii =
     "{s}  .-(    ). {s}   {d}%  {d:.1} mb\n" ++
     "{s} (___.__)__){s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
     "{s}            {s}   {s}{s}{s}\n";
-fn cloudy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+fn cloudy_renderer(writer: *std.io.Writer, res: WeatherResponse) !void {
     const c = ansi.FgBlue;
     const r = ansi.Reset;
     const curr = res.current;
@@ -57,7 +57,7 @@ const rainy_ascii =
     " {s} (___.__)__){s}   {d}%  {d:.1} mb\n" ++
     " {s}  /  /  / / {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
     " {s}   /  /  /  {s}   {s}{s}{s}\n";
-fn rainy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+fn rainy_renderer(writer: *std.io.Writer, res: WeatherResponse) !void {
     const b = ansi.FgBlue;
     const g = ansi.FgLGrey;
     const cyan = ansi.FgCyan;
@@ -79,7 +79,7 @@ const snowy_ascii =
     " {s} (___.__)__){s}   {d}%  {d:.1} mb\n" ++
     " {s}  *  *  * * {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
     " {s}   *  *  *  {s}   {s}{s}{s}\n";
-fn snowy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+fn snowy_renderer(writer: *std.io.Writer, res: WeatherResponse) !void {
     const g = ansi.FgLGrey;
     const r = ansi.Reset;
     const curr = res.current;
@@ -99,7 +99,7 @@ const foggy_ascii =
     " {s}   _   _    {s}   {d}%  {d:.1} mb\n" ++
     " {s} _   _   _  {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
     " {s}            {s}   {s}{s}{s}\n";
-fn foggy_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+fn foggy_renderer(writer: *std.io.Writer, res: WeatherResponse) !void {
     const curr = res.current;
     try writer.print(foggy_ascii, .{
         ansi.FgMagenta, ansi.Reset,    ansi.FgMagenta,         curr.condition.text, ansi.Reset,
@@ -116,7 +116,7 @@ const thunder_ascii =
     " {s} (___.__)__){s}   {d}%  {d:.1} mb\n" ++
     " {s}      /     {s}   {d:.1} kph  ({d:.1} mph)  {d}° {s}\n" ++
     " {s}      7     {s}   {s}{s}{s}\n";
-fn thunder_renderer(writer: std.io.AnyWriter, res: WeatherResponse) !void {
+fn thunder_renderer(writer: *std.io.Writer, res: WeatherResponse) !void {
     const curr = res.current;
     try writer.print(foggy_ascii, .{
         ansi.FgLGrey,  ansi.Reset,    ansi.FgCyan,            curr.condition.text, ansi.Reset,
@@ -153,17 +153,19 @@ fn findCondition(code: i32) ?ConditionUI {
 pub fn render(conf: Config, res: WeatherResponse) !void {
     _ = conf;
 
-    const w = std.io.getStdOut().writer().any();
+    var buf: [1024]u8 = undefined;
+    var w = std.fs.File.writer(std.fs.File.stdout(), &buf);
     const code = res.current.condition.code;
 
     if (findCondition(code)) |cnd| {
-        try w.writeAll("\n");
-        try cnd.render(w, res);
-        try w.writeAll("\n");
+        try w.interface.writeAll("\n");
+        try cnd.render(&w.interface, res);
+        try w.interface.writeAll("\n");
     } else {
         std.log.err("Unknown weather code {} – {s}\n", .{
             code,
             res.current.condition.text,
         });
     }
+    try w.interface.flush();
 }

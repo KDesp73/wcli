@@ -8,6 +8,7 @@ const Config = @import("config.zig").Config;
 const Cache = @import("cache.zig").Cache;
 const version = @import("version.zig").version;
 
+
 var config = Config{};
 const alloc = std.heap.page_allocator;
 
@@ -51,7 +52,10 @@ pub fn main() !void {
 
 fn exec() !void {
     if (config.version) {
-        try std.io.getStdOut().writer().print("v{s}\n", .{version});
+        var buf: [1024]u8 = undefined;
+        var w = std.fs.File.writer(std.fs.File.stdout(), &buf);
+        try w.interface.print("v{s}\n", .{version});
+        try w.interface.flush();
         return;
     }
 
@@ -105,7 +109,10 @@ fn exec() !void {
     defer alloc.free(body.?);
 
     if (config.json) {
-        _ = try std.io.getStdOut().writer().print("{s}\n", .{body.?});
+        var buf: [1024]u8 = undefined;
+        var w = std.fs.File.writer(std.fs.File.stdout(), &buf);
+        try w.interface.print("{s}\n", .{body.?});
+        try w.interface.flush();
         return;
     }
 
